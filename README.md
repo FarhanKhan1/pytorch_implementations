@@ -33,6 +33,8 @@ pip install -q transformers datasets accelerate evaluate scikit-learn huggingfac
 
 ### 1. DistilBERT — Built From Scratch in PyTorch (Sentiment Classification)
 **File:** `distil_bert_pt_implementation.ipynb`
+**Video series:** [DistilBERT From Scratch — YouTube Playlist](https://youtube.com/playlist?list=PLfRsU250yllA&si=9tbkiYIwH8As5j2y)
+
 
 A from-scratch PyTorch reimplementation of the DistilBERT architecture, trained as a 3-class sentiment classifier.
 
@@ -53,7 +55,7 @@ A from-scratch PyTorch reimplementation of the DistilBERT architecture, trained 
 - `TransformerBlock` — attention + FFN with residual connections and Add & Norm
 - `TransformerEncoder` — stack of 6 Transformer blocks executing sequentially
 - `DistilBertForSentimentClassification` — full model: embeddings → encoder → pre-classifier → classifier head (combined all sub-modules into a final class)
-- `NaiveClassifier` — a minimal baseline (embeddings + linear head only, no attention) used to sanity-check that attention actually helps
+- `NaiveClassifier` — a minimal baseline (embeddings + linear head only, no attention) used to sanity-check that attention actually helps.
 
 **Dataset:** [`cardiffnlp/tweet_eval`](https://huggingface.co/datasets/cardiffnlp/tweet_eval) (`sentiment` config) — tweets labeled `negative` / `neutral` / `positive`.
 
@@ -67,13 +69,15 @@ A from-scratch PyTorch reimplementation of the DistilBERT architecture, trained 
 - Checkpoints (model + optimizer state, epoch, losses, accuracy) saved to Google Drive and reloadable for inference/resuming
 
 **Sanity checks / unit tests included in notebook:**
-- Embedding layer output shape
-- Single-head vs multi-head attention output shapes
-- Full encoder forward pass
-- Naive (no-attention) classifier vs full model, to see the effect of self-attention
+- Embedding layer output shape + positional encoding testing. (before and after merging both the embeddings)
+- Single-head vs multi-head attention output shapes: The single head vs reshaped MultiHeadAttenttion results testing. Each matrix has been tested like the scores before attention_mask, masked_scores, weights and finally the context.
+- Full encoder forward pass including all of the 4 main steps (MHA -> add & Norm -> FFN -> add & Norm) 
+- Naive (no-attention) classifier vs full model, to see the effect of self-attention.
 - Manual inference function `predict_sentiment(text, model, tokenizer, device)`
 
 **Status:** ✅ architecture implemented, trained, checkpointed, and reload-tested end-to-end.
+
+
 
 **Possible next steps:**
 - [ ] Evaluate properly on the `validation`/`test` split (accuracy/F1) rather than spot-checking
