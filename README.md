@@ -43,15 +43,16 @@ A from-scratch PyTorch reimplementation of the DistilBERT architecture, trained 
 - Dataset tokenization — mapped raw text to `input_ids`/`attention_mask` via the tokenizer
 - `TrainingArguments` + `Trainer.train()` — fine-tuned on `cardiffnlp/tweet_eval` (3-class sentiment) using the high-level Trainer API, ~74% validation accuracy on a Colab T4
 - Purpose: establish a working baseline and understand the abstraction end-to-end before reimplementing any of it manually
+- `print(model)` , `model.state_dict()` , `inspect.getsource(class.__init__/class.forward)` — The base model has been properly inspected with its constructor and forward source code
 
 *Phase 2 — DistilBERT from scratch (custom PyTorch):*
 - `DistilBertEmbeddings` — word + learned positional embeddings, LayerNorm, dropout
 - `SelfAttention` — single-head scaled dot-product attention (built first, for intuition)
-- `MultiHeadSelfAttention` — 12-head attention (768 hidden size, 64 dim/head)
+- `MultiHeadSelfAttention` — 12-head attention (768 hidden size, 64 head-dimension)
 - `FeedForward` — position-wise FFN (768 → 3072 → 768, GELU activation)
 - `TransformerBlock` — attention + FFN with residual connections and Add & Norm
-- `TransformerEncoder` — stack of 6 Transformer blocks
-- `DistilBertForSentimentClassification` — full model: embeddings → encoder → pre-classifier → classifier head
+- `TransformerEncoder` — stack of 6 Transformer blocks executing sequentially
+- `DistilBertForSentimentClassification` — full model: embeddings → encoder → pre-classifier → classifier head (combined all sub-modules into a final class)
 - `NaiveClassifier` — a minimal baseline (embeddings + linear head only, no attention) used to sanity-check that attention actually helps
 
 **Dataset:** [`cardiffnlp/tweet_eval`](https://huggingface.co/datasets/cardiffnlp/tweet_eval) (`sentiment` config) — tweets labeled `negative` / `neutral` / `positive`.
