@@ -14,7 +14,7 @@ This repo is where I implement machine learning / deep learning / GenAI concepts
 .
 ├── README.md
 ├── distil_bert_pt_implementation.ipynb   # Experiment 1 (see below)
-└── (future experiments go here, one notebook/folder each)
+└── loading_pretrained_weights_to_custom_model.ipynb # Experiment 2 (see below)
 ```
 
 ## Environment Setup
@@ -36,7 +36,15 @@ pip install -q transformers datasets accelerate evaluate scikit-learn huggingfac
 
 A from-scratch PyTorch reimplementation of the DistilBERT architecture, trained as a 3-class sentiment classifier.
 
-**What's implemented:**
+**What's learned and implemented:**
+
+*Phase 1 — HuggingFace abstraction (no custom code):*
+- `AutoTokenizer` / `AutoModelForSequenceClassification` — loaded pretrained DistilBERT with a randomly initialized classification head
+- Dataset tokenization — mapped raw text to `input_ids`/`attention_mask` via the tokenizer
+- `TrainingArguments` + `Trainer.train()` — fine-tuned on `cardiffnlp/tweet_eval` (3-class sentiment) using the high-level Trainer API, ~74% validation accuracy on a Colab T4
+- Purpose: establish a working baseline and understand the abstraction end-to-end before reimplementing any of it manually
+
+*Phase 2 — DistilBERT from scratch (custom PyTorch):*
 - `DistilBertEmbeddings` — word + learned positional embeddings, LayerNorm, dropout
 - `SelfAttention` — single-head scaled dot-product attention (built first, for intuition)
 - `MultiHeadSelfAttention` — 12-head attention (768 hidden size, 64 dim/head)
