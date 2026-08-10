@@ -33,8 +33,7 @@ pip install -q transformers datasets accelerate evaluate scikit-learn huggingfac
 
 ### 1. DistilBERT — Built From Scratch in PyTorch (Sentiment Classification)
 **File:** `distil_bert_pt_implementation.ipynb`
-**Video series:** [DistilBERT From Scratch — YouTube Playlist](https://youtube.com/playlist?list=PLfRsU250yllA&si=9tbkiYIwH8As5j2y)
-
+[![DistilBERT from Scratch in PyTorch](https://img.youtube.com/vi/B0WbnGxhOrU/maxresdefault.jpg)](https://youtube.com/playlist?list=PLfRsU250yllA&si=9tbkiYIwH8As5j2y)
 
 A from-scratch PyTorch reimplementation of the DistilBERT architecture, trained as a 3-class sentiment classifier.
 
