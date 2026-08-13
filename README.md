@@ -82,10 +82,10 @@ A from-scratch PyTorch reimplementation of the DistilBERT architecture, trained 
 
 
 **Possible next steps:**
-- [ ] Evaluate properly on the `validation`/`test` split (accuracy/F1) rather than spot-checking
+- [x] Evaluate properly on the `validation`/`test` split (accuracy/F1) rather than spot-checking
 - [ ] Compare against the real pretrained `distilbert-base-uncased` fine-tuned the standard (Hugging Face `Trainer`) way
 - [ ] Add attention-weight visualization
-- [ ] Try loading actual pretrained DistilBERT weights into this custom architecture (weight-porting exercise)
+- [x] Try loading actual pretrained DistilBERT weights into this custom architecture (weight-porting exercise)
 
 ---
 
