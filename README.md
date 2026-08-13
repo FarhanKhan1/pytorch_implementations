@@ -101,25 +101,25 @@ MultiHeadAttention — standard MHA with dedicated K/V projections per head
 MultiQueryAttention — MQA with a single shared K/V head across all query heads
 GroupedQueryAttention — GQA with query heads split into groups, each sharing one K/V head
 
-Results:
+## Results
 
-MHA (dedicated KV) — Final Epoch Train Loss: 0.7704 | Val Loss: 0.7990 | Val Accuracy: 63.90% | Avg Epoch Time: ~566s
+### MHA (dedicated KV) — Final Epoch Train Loss: 0.7704 | Val Loss: 0.7990 | Val Accuracy: 63.90% | Avg Epoch Time: ~566s
 
 Epoch 1 | Avg Train Loss: 0.9103 | Val Loss: 0.8677 | Val Accuracy: 0.5860 | Time: 550.6s
 Epoch 2 | Avg Train Loss: 0.8183 | Val Loss: 0.8150 | Val Accuracy: 0.6275 | Time: 572.7s
 Epoch 3 | Avg Train Loss: 0.7704 | Val Loss: 0.7990 | Val Accuracy: 0.6390 | Time: 575.9s
 
-MQA (shared KV) — Final Epoch Train Loss: 0.7962 | Val Loss: 0.8052 | Val Accuracy: 63.35% | Avg Epoch Time: ~484s
+### MQA (shared KV) — Final Epoch Train Loss: 0.7962 | Val Loss: 0.8052 | Val Accuracy: 63.35% | Avg Epoch Time: ~484s
 
 Epoch 1 | Avg Train Loss: 0.9178 | Val Loss: 0.8767 | Val Accuracy: 0.5615 | Time: 485.5s
 Epoch 2 | Avg Train Loss: 0.8364 | Val Loss: 0.8473 | Val Accuracy: 0.6145 | Time: 483.8s
 Epoch 3 | Avg Train Loss: 0.7962 | Val Loss: 0.8052 | Val Accuracy: 0.6335 | Time: 483.8s
 
-GQA (grouped KV) — Final Epoch Train Loss: 0.7802 | Val Loss: 0.8036 | Val Accuracy: 63.50% | Avg Epoch Time: ~503.5s
+### GQA (grouped KV) — Final Epoch Train Loss: 0.7802 | Val Loss: 0.8036 | Val Accuracy: 63.50% | Avg Epoch Time: ~503.5s
 
 Epoch 1 | Avg Train Loss: 0.9151 | Val Loss: 0.8831 | Val Accuracy: 0.5660 | Time: 506.6s
 Epoch 2 | Avg Train Loss: 0.8275 | Val Loss: 0.8368 | Val Accuracy: 0.6125 | Time: 502.1s
-Epoch 3 | Avg Train Loss: 0.7802 | Val Loss: 0.8036 | Val Accuracy: 0.6350 | Time: 501.8s
+Epoch 3
 
 <!--
 Template for the next experiment — copy/paste and fill in:
