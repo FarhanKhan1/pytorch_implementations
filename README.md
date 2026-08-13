@@ -77,7 +77,7 @@ A from-scratch PyTorch reimplementation of the DistilBERT architecture, trained 
 - Naive (no-attention) classifier vs full model, to see the effect of self-attention.
 - Manual inference function `predict_sentiment(text, model, tokenizer, device)`
 
-**Status:** ✅ architecture implemented, trained, checkpointed, and reload-tested end-to-end.
+**Status:** architecture implemented, trained, checkpointed, and reload-tested end-to-end.
 
 
 
