@@ -89,7 +89,7 @@ A from-scratch PyTorch reimplementation of the DistilBERT architecture, trained 
 
 ---
 
-### 2. Multi-Head, Multi-Query & Grouped-Query Attention — From Scratch Comparison
+### 2. Multi-Head, Multi-Query, Grouped-Query Attention, FlashAttention — From Scratch Comparison
 
 **File:** `distil_bert_pt_implementation.ipynb`
 
