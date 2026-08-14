@@ -130,7 +130,17 @@ Epoch 3 | Avg Train Loss: 0.7962 | Val Loss: 0.8052 | Val Accuracy: 0.6335 | Tim
 
 Epoch 1 | Avg Train Loss: 0.9151 | Val Loss: 0.8831 | Val Accuracy: 0.5660 | Time: 506.6s
 Epoch 2 | Avg Train Loss: 0.8275 | Val Loss: 0.8368 | Val Accuracy: 0.6125 | Time: 502.1s
-Epoch 3
+Epoch 3 | Avg Train Loss: 0.7802 | Val Loss: 0.8036 | Val Accuracy: 63.50% | Avg Epoch Time: ~503.5s
+
+**FlashAttention (fused SDPA kernel)** — Final Epoch Train Loss: 0.7676 | Val Loss: 0.7950 | Val Accuracy: 63.20% | Avg Epoch Time: ~597.3s
+Epoch 1 | Avg Train Loss: 0.9122 | Val Loss: 0.9052 | Val Accuracy: 0.5905 | Time: 596.6s
+Epoch 2 | Avg Train Loss: 0.8178 | Val Loss: 0.8321 | Val Accuracy: 0.6100 | Time: 598.1s
+Epoch 3 | Avg Train Loss: 0.7676 | Val Loss: 0.7950 | Val Accuracy: 0.6320 | Time: 597.1s
+
+**Note:** run on a T4 GPU (Colab), which does not support fused FlashAttention kernels — 
+PyTorch's scaled_dot_product_attention (SDPA) likely fell back to the standard math backend, 
+so the timing doesn't reflect real FlashAttention speed. Results must be 
+re-validated on Ampere+ GPU (A100/H100) before drawing any conclusions about the speed.
 
 <!--
 Template for the next experiment — copy/paste and fill in:
