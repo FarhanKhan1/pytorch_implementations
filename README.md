@@ -143,6 +143,8 @@ PyTorch's scaled_dot_product_attention (SDPA) likely fell back to the standard m
 so the timing doesn't reflect real FlashAttention speed. Results must be 
 re-validated on Ampere+ GPU (A100/H100) before drawing any conclusions about the speed.
 
+---
+
 ### 3. Normalization/architecture-level changes [Pre-LN vs Post-LN] — From Scratch Comparison
 
 **File:** `distil_bert_pt_implementation.ipynb`
