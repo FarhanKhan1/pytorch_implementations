@@ -89,19 +89,18 @@ A from-scratch PyTorch reimplementation of the DistilBERT architecture, trained 
 
 ---
 
-### 2. Attention mechanism optimizations and Normalization/architecture-level changes [ Multi-Head vs Multi-Query vs Grouped-Query Attention, FlashAttention, Pre-LN vs Post-LN ] — From Scratch Comparison
+### 2. Attention mechanism optimizations [Multi-Head, Multi-Query, Grouped-Query Attention, FlashAttention] — From Scratch Comparison
 
 **File:** `distil_bert_pt_implementation.ipynb`
 
-A from-scratch PyTorch implementation and side-by-side comparison of three attention variants — Multi-Head Attention (MHA), Multi-Query Attention (MQA), and Grouped-Query Attention (GQA) — trained under identical conditions to study their trade-offs in KV cache size and downstream performance. Also includes a comparison of Post-LayerNorm vs Pre-LayerNorm transformer blocks under an aggressive, warmup-free learning rate to study gradient stability.
+A from-scratch PyTorch implementation and side-by-side comparison of three attention variants — Multi-Head Attention (MHA), Multi-Query Attention (MQA), and Grouped-Query Attention (GQA) — trained under identical conditions to study their downstream performance.
 
 **What's implemented:**
 
 - MultiHeadAttention — standard MHA with dedicated K/V projections per head
 - MultiQueryAttention — MQA with a single shared K/V head across all query heads
 - GroupedQueryAttention — GQA with query heads split into groups, each sharing one K/V head
-- Post-LN block — LayerNorm applied *after* the residual addition (`LN(x + Sublayer(x))`)
-- Pre-LN block — LayerNorm applied *before* the sublayer, inside the residual branch (`x + Sublayer(LN(x))`)
+- Flash Attention — Instead of the whole matrix, just tiny blocks are extracted from the giant matrix
 
 **Dataset:** [`cardiffnlp/tweet_eval`](https://huggingface.co/datasets/cardiffnlp/tweet_eval) (`sentiment` config) — tweets labeled `negative` / `neutral` / `positive`.
 
@@ -110,10 +109,9 @@ A from-scratch PyTorch implementation and side-by-side comparison of three atten
 **Training setup:**
 - Tokenized to max length 128, padded to `max_length`
 - `DataCollatorWithPadding` + PyTorch `DataLoader` (batch size 16, shuffled)
-- Loss: `CrossEntropyLoss` | Optimizer: `AdamW`
-- Manual training loop (forward → loss → backward → optimizer step)
-- MHA / MQA / GQA / FlashAttention: lr=2e-5, 3 epochs; for GQA, num_kv_groups = 4, making the kv dimension 256
-- Pre-LN vs Post-LN: lr=3e-4, no warmup (deliberately aggressive to stress-test stability), 12 transformer layers, 1 epoch
+- Loss: `CrossEntropyLoss` | Optimizer: `AdamW` (lr=2e-5)
+- Manual training loop (forward → loss → backward → optimizer step) over 3 epochs
+- For GQA, num_kv_groups = 4, that makes the kv dimension 256
 
 **Results**
 
@@ -144,6 +142,29 @@ Epoch 3 | Avg Train Loss: 0.7676 | Val Loss: 0.7950 | Val Accuracy: 0.6320 | Tim
 PyTorch's scaled_dot_product_attention (SDPA) likely fell back to the standard math backend, 
 so the timing doesn't reflect real FlashAttention speed. Results must be 
 re-validated on Ampere+ GPU (A100/H100) before drawing any conclusions about the speed.
+
+### 3. Normalization/architecture-level changes [Pre-LN vs Post-LN] — From Scratch Comparison
+
+**File:** `distil_bert_pt_implementation.ipynb`
+
+A from-scratch PyTorch implementation and side-by-side comparison of two normalization techniques at architecture level, Pre-LN (Pre Layer Normalization) and Post-LN (Post Layer Normalization) — trained under identical conditions to study their impact on the training stability under an aggressive, warmup-free learning rate to study gradient stability.
+
+**What's implemented:**
+- Post-LN block — LayerNorm applied *after* the residual addition (`LN(x + Sublayer(x))`)
+- Pre-LN block — LayerNorm applied *before* the sublayer, inside the residual branch (`x + Sublayer(LN(x))`)
+
+**Dataset:** [`cardiffnlp/tweet_eval`](https://huggingface.co/datasets/cardiffnlp/tweet_eval) (`sentiment` config) — tweets labeled `negative` / `neutral` / `positive`.
+
+**Tokenizer:** pretrained `distilbert-base-uncased` tokenizer from Hugging Face (WordPiece vocab reused; only the model weights/architecture are trained from scratch — not the tokenizer).
+
+**Training setup:**
+- Tokenized to max length 128, padded to `max_length`
+- `DataCollatorWithPadding` + PyTorch `DataLoader` (batch size 16, shuffled)
+- Loss: `CrossEntropyLoss` | Optimizer: `AdamW`
+- Manual training loop (forward → loss → backward → optimizer step)
+- Pre-LN vs Post-LN: lr=3e-4, no warmup (deliberately aggressive to stress-test stability), 12 transformer layers, 1 epoch
+
+**Results**
 
 **Post-LN** — Epoch 1 Train Loss: 1.0220 | Val Loss: 1.0200 | Val Accuracy: 43.45% | Time: 1104.2s
 
@@ -187,7 +208,7 @@ Epoch 1 | Step 2800/2851 | Loss: 0.8245
 Epoch 1 finished | Avg Train Loss: 0.9986 | Time: 1110.9s
 Epoch 1 | Validation Loss: 0.9190 | Validation Accuracy: 0.5515
 
-**Note:** despite a much higher step-0 loss (4.30 vs 1.87 — attributable to init variance, not instability), Pre-LN converges to a lower and smoother training loss by later steps (mostly 0.82–1.01 vs Post-LN's noisier 0.86–1.19) and clearly outperforms Post-LN on validation accuracy (55.15% vs 43.45%) under this aggressive, warmup-free LR (3e-4) at 12 layers. This is consistent with Pre-LN's known advantage in gradient stability at higher LR and depth. Only epoch 1 has been run so far — results should be extended to more epochs before drawing final conclusions.
+**Note:** Pre-LN started with a worse loss (4.30 vs 1.87) — but that's just bad luck from random initialization, not a sign of a problem. What matters is what happens after: Pre-LN's loss settles into a lower, steadier range (0.82–1.01) as training goes on, while Post-LN keeps bouncing around more (0.86–1.19) and never settles as well. On the actual task performance, Pre-LN also did much better — 55% accuracy vs Post-LN's 43%.
 
 <!--
 Template for the next experiment — copy/paste and fill in:
