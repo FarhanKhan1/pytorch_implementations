@@ -212,6 +212,35 @@ Epoch 1 | Validation Loss: 0.9190 | Validation Accuracy: 0.5515
 
 **Note:** Pre-LN started with a worse loss (4.30 vs 1.87) — but that's just bad luck from random initialization, not a sign of a problem. What matters is what happens after: Pre-LN's loss settles into a lower, steadier range (0.82–1.01) as training goes on, while Post-LN keeps bouncing around more (0.86–1.19) and never settles as well. On the actual task performance, Pre-LN also did much better — 55% accuracy vs Post-LN's 43%.
 
+
+### 2. Model compression [Quantization (INT8, INT4, GPTQ, AWQ), LoRA / QLoRA, Pruning]
+
+**File:** `distil_bert_pt_implementation.ipynb`
+
+A from-scratch PyTorch implementation and side-by-side comparison of different quantization techniques with the main model(with full precision) — trained under identical conditions to study their impact on the confidence scores and accuracy.
+
+**What's implemented:**
+- Float(32) vs INT8 --> Pending
+- Float(32) vs INT4 --> Pending
+- INT8 vs INT8 --> Pending
+- GPTQ vs INT8 and INT4
+- AWQ vs GPTQ
+
+**Dataset:** [`cardiffnlp/tweet_eval`](https://huggingface.co/datasets/cardiffnlp/tweet_eval) (`sentiment` config) — tweets labeled `negative` / `neutral` / `positive`.
+
+**Tokenizer:** pretrained `distilbert-base-uncased` tokenizer from Hugging Face (WordPiece vocab reused; only the model weights/architecture are trained from scratch — not the tokenizer).
+
+**Training setup:**
+- Tokenized to max length 128, padded to `max_length`
+- `DataCollatorWithPadding` + PyTorch `DataLoader` (batch size 16, shuffled)
+- Loss: `CrossEntropyLoss` | Optimizer: `AdamW`
+- Manual training loop (forward → loss → backward → optimizer step)
+- Pre-LN vs Post-LN: lr=3e-4, no warmup (deliberately aggressive to stress-test stability), 12 transformer layers, 1 epoch
+
+**Results**
+
+"coming soon!!!"
+
 <!--
 Template for the next experiment — copy/paste and fill in:
 
