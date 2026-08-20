@@ -212,19 +212,23 @@ Epoch 1 | Validation Loss: 0.9190 | Validation Accuracy: 0.5515
 
 **Note:** Pre-LN started with a worse loss (4.30 vs 1.87) — but that's just bad luck from random initialization, not a sign of a problem. What matters is what happens after: Pre-LN's loss settles into a lower, steadier range (0.82–1.01) as training goes on, while Post-LN keeps bouncing around more (0.86–1.19) and never settles as well. On the actual task performance, Pre-LN also did much better — 55% accuracy vs Post-LN's 43%.
 
+---
 
-### 2. Model compression [Quantization (INT8, INT4, GPTQ, AWQ), LoRA / QLoRA, Pruning]
+### 4. Model compression [Quantization (INT8, INT4, GPTQ, AWQ), LoRA / QLoRA, Pruning]
 
 **File:** `distil_bert_pt_implementation.ipynb`
 
-A from-scratch PyTorch implementation and side-by-side comparison of different quantization techniques with the main model(with full precision) — trained under identical conditions to study their impact on the confidence scores and accuracy.
+A from-scratch PyTorch implementation and side-by-side comparison of different quantization techniques with the main model (full precision) — trained under identical conditions to study their impact on confidence scores and accuracy.
 
 **What's implemented:**
-- Float(32) vs INT8 --> Pending
-- Float(32) vs INT4 --> Pending
-- INT8 vs INT8 --> Pending
-- GPTQ vs INT8 and INT4
-- AWQ vs GPTQ
+- Manual INT8 quantization (`quantize_tensor`, `dequantize_tensor`, `find_scale`) — symmetric, per-tensor max-based scaling, applied independently across all 200 parameter tensors in the model (`quantize_model` / `dequantize_model`)
+- Float32 vs manual INT8 (round-trip quantize → dequantize) — **done**, see results below
+- Float32 vs INT4 --> Pending
+- GPTQ vs manual INT8/INT4 --> Pending (via `auto-gptq`)
+- AWQ vs GPTQ --> Pending (via `AutoAWQ`)
+- LoRA --> **done (LoRA on Q/V)**, see results below
+- QLoRA --> Pending
+- Pruning --> Pending
 
 **Dataset:** [`cardiffnlp/tweet_eval`](https://huggingface.co/datasets/cardiffnlp/tweet_eval) (`sentiment` config) — tweets labeled `negative` / `neutral` / `positive`.
 
@@ -235,11 +239,31 @@ A from-scratch PyTorch implementation and side-by-side comparison of different q
 - `DataCollatorWithPadding` + PyTorch `DataLoader` (batch size 16, shuffled)
 - Loss: `CrossEntropyLoss` | Optimizer: `AdamW`
 - Manual training loop (forward → loss → backward → optimizer step)
-- Pre-LN vs Post-LN: lr=3e-4, no warmup (deliberately aggressive to stress-test stability), 12 transformer layers, 1 epoch
 
-**Results**
+**Manual INT8 quantization — method:**
+- Symmetric quantization: `scale = tensor.abs().max() / 127`, `quantized = round(tensor / scale).clamp(-127, 127)` → stored as `int8`
+- Applied per-tensor (each of the 200 weight/bias tensors gets its own independent scale, rather than one global scale) — done specifically to avoid one large weight elsewhere in the model distorting the precision of unrelated tensors
+- Dequantization: `tensor = quantized.float() * scale`, reloaded into the model via `load_state_dict` for inference
+- Note: this round-trips back to float32 before inference — it gives the memory/storage savings (~4x smaller: 200 tensors stored as int8 + one float scale each) but not real int8 compute speedup, since no int8 matmul kernel is used. Libraries like `bitsandbytes` are needed for actual faster inference.
 
-"coming soon!!!"
+**Results — Float32 vs manual INT8 (word embedding table, `embeddings.word_embeddings.weight`)**
+- Original weight range: tensor max abs value = `5.3533` → scale = `5.3533 / 127 ≈ 0.0422`
+- Round-trip error sample: `0.5663 → 0.5480` (int8: `13`), `-1.0084 → -1.0116` (int8: `-24`) — small, expected rounding error
+- **Outlier effect observed:** any weight with `abs(value) < scale/2 ≈ 0.0211` rounds to exactly `0` after quantization — e.g. `0.0054` and `-0.0065` were both zeroed out completely, not just approximated. Caused by the single tensor-wide scale being set by the largest value (`5.3533`), which compresses all smaller values toward the low end of the int8 range.
+
+
+**Next up:** quantify what fraction of each tensor gets zeroed by this effect (`(w.abs() < scale/2).float().mean()`), then repeat the same round-trip test with `bitsandbytes` (`load_in_8bit`/`load_in_4bit`), `auto-gptq`, and `AutoAWQ` for a direct comparison against this manual baseline.
+
+**LoRA (Q and V projections only)**
+
+LoRA adapters applied to `q_lin` and `v_lin` only (`r=8`, `alpha=16`, `scaling = alpha/r = 2.0`, output = `original_output + self.scaling * lora_output`). All base model weights frozen; only the LoRA adapter matrices and the classifier head were trainable (`optimizer = AdamW(trainable_params, lr=2e-4)`).
+
+**LoRA (Q+V, r=8, alpha=16)** — Final Epoch Train Loss: 0.8218 | Val Loss: 0.8618 | Val Accuracy: 59.20% | Avg Epoch Time: ~332.7s
+
+Epoch 1 | Avg Train Loss: 0.9093 | Val Loss: 0.8950 | Val Accuracy: 0.5770 | Time: 329.9s
+Epoch 2 | Avg Train Loss: 0.8471 | Val Loss: 0.8681 | Val Accuracy: 0.5815 | Time: 334.1s
+Epoch 3 | Avg Train Loss: 0.8218 | Val Loss: 0.8618 | Val Accuracy: 0.5920 | Time: 334.0s
+
 
 <!--
 Template for the next experiment — copy/paste and fill in:
